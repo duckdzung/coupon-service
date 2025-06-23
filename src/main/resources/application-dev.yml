@@ -1,0 +1,12 @@
+spring:
+  # Database Configuration
+  datasource:
+    url: jdbc:mysql://localhost:4000/coupon-database?createDatabaseIfNotExist=true
+    username: root
+    password: ""
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    # Connection Pool Settings
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20

@@ -1,0 +1,9 @@
+package vn.zaloppay.couponservice.core.exceptions;
+
+public class ResourceNotFoundException extends RuntimeException{
+
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+
+}

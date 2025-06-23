@@ -1,0 +1,115 @@
+package vn.zaloppay.couponservice.presenter.controllers;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import vn.zaloppay.couponservice.core.usecases.IUseCaseExecutor;
+import vn.zaloppay.couponservice.core.usecases.coupon.CreateCouponUseCase;
+import vn.zaloppay.couponservice.core.usecases.coupon.GetAllCouponUseCase;
+import vn.zaloppay.couponservice.core.usecases.coupon.UpdateCouponUseCase;
+import vn.zaloppay.couponservice.presenter.config.Limer;
+import vn.zaloppay.couponservice.presenter.entities.ApiResponse;
+import vn.zaloppay.couponservice.presenter.entities.CouponResponse;
+import vn.zaloppay.couponservice.presenter.entities.CreateCouponRequest;
+import vn.zaloppay.couponservice.presenter.entities.UpdateCouponRequest;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/admin/coupons")
+@AllArgsConstructor
+@Validated
+@Limer(enabledLogLatency = true, enabledLogInOut = true)
+public class AdminCouponController {
+
+    private final IUseCaseExecutor useCaseExecutor;
+
+    private final CreateCouponUseCase createCouponUseCase;
+
+    private final GetAllCouponUseCase getAllCouponUseCase;
+
+    private final UpdateCouponUseCase updateCouponUseCase;
+
+    @GetMapping()
+    public ResponseEntity<ApiResponse> getAllCoupons() {
+        List<CouponResponse> coupons = useCaseExecutor.execute(
+                getAllCouponUseCase,
+                new GetAllCouponUseCase.InputValues(),
+                outputValues -> CouponResponse.from(outputValues.getCoupons()));
+
+        return new ResponseEntity<>(ApiResponse.success(coupons, "Get all coupons successfully"), HttpStatus.OK);
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse> createCoupon(@Valid @RequestBody CreateCouponRequest createCouponRequest) {
+        CouponResponse coupon = useCaseExecutor.execute(
+                createCouponUseCase,
+                new CreateCouponUseCase.InputValues(
+                        createCouponRequest.getCode(),
+                        createCouponRequest.getTitle(),
+                        createCouponRequest.getDescription(),
+                        createCouponRequest.getDiscountType(),
+                        createCouponRequest.getUsageType(),
+                        createCouponRequest.getDiscountValue(),
+                        createCouponRequest.getMinOrderValue(),
+                        createCouponRequest.getMaxDiscountAmount(),
+                        createCouponRequest.getStartTime(),
+                        createCouponRequest.getEndTime(),
+                        createCouponRequest.getRemainingUsage()
+
+                ),
+                outputValues -> CouponResponse.from(outputValues.getCoupon()));
+
+        return new ResponseEntity<>(ApiResponse.success(coupon, "Create coupon successfully"), HttpStatus.OK);
+    }
+
+    @PutMapping("/{code}")
+    public ResponseEntity<ApiResponse> updateCoupon(
+            @PathVariable
+            @NotBlank(message = "Coupon code must not be blank")
+            @Size(min = 3, max = 10, message = "Coupon code must be between 3 and 10 characters")
+            String code,
+            @Valid @RequestBody UpdateCouponRequest updateCouponRequest) {
+
+        CouponResponse coupon = useCaseExecutor.execute(
+                updateCouponUseCase,
+                new UpdateCouponUseCase.InputValues(
+                        code,
+                        updateCouponRequest.getTitle(),
+                        updateCouponRequest.getDescription(),
+                        updateCouponRequest.getDiscountType(),
+                        updateCouponRequest.getUsageType(),
+                        updateCouponRequest.getMaxDiscountAmount(),
+                        updateCouponRequest.getMinOrderValue(),
+                        updateCouponRequest.getStartTime(),
+                        updateCouponRequest.getEndTime(),
+                        updateCouponRequest.getRemainingUsage()
+                ),
+                outputValues -> CouponResponse.from(outputValues.getCoupon())
+        );
+
+        return new ResponseEntity<>(ApiResponse.success(coupon, "Update coupon successfully"), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{code}")
+    public ResponseEntity<ApiResponse> deleteCoupon(
+            @PathVariable
+            @NotBlank(message = "Coupon code must not be blank")
+            @Size(min = 3, max = 10, message = "Coupon code must be between 3 and 10 characters")
+            String code) {
+
+        return new ResponseEntity<>(ApiResponse.success(null, "Delete coupon successfully"), HttpStatus.OK);
+    }
+} 

@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 3s
+  evaluation_interval: 3s
+
+scrape_configs:
+  # Spring Boot Application with Actuator
+  - job_name: "coupon-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["host.docker.internal:8080", "coupon-service"]
+
+  - job_name: "tidb"
+    static_configs:
+      - targets: ["tidb:10080"]

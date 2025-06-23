@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: coupon-service
+  profiles:
+    active: dev
+#    active: prod
+
+  # Config Spring Data JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+# Config Spring Actuator and Prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health, info
+  prometheus:
+    metrics:
+      export:
+        enabled: true
