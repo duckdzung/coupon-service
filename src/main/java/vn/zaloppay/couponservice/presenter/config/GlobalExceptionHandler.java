@@ -9,7 +9,7 @@ import vn.zaloppay.couponservice.core.exceptions.BadRequestException;
 import vn.zaloppay.couponservice.core.exceptions.ConflictException;
 import vn.zaloppay.couponservice.core.exceptions.InternalServerErrorException;
 import vn.zaloppay.couponservice.core.exceptions.ResourceNotFoundException;
-import vn.zaloppay.couponservice.presenter.entities.ApiResponse;
+import vn.zaloppay.couponservice.presenter.entities.response.ApiResponse;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

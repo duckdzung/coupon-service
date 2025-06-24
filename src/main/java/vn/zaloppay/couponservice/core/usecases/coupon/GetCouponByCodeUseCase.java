@@ -1,6 +1,6 @@
 package vn.zaloppay.couponservice.core.usecases.coupon;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.springframework.stereotype.Component;
 import vn.zaloppay.couponservice.core.entities.Coupon;
@@ -9,7 +9,7 @@ import vn.zaloppay.couponservice.core.repositories.ICouponRepository;
 import vn.zaloppay.couponservice.core.usecases.UseCase;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GetCouponByCodeUseCase extends UseCase<GetCouponByCodeUseCase.InputValues, GetCouponByCodeUseCase.OutputValues> {
 
     private final ICouponRepository couponRepository;

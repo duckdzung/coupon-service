@@ -1,6 +1,6 @@
 package vn.zaloppay.couponservice.core.usecases.coupon;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.springframework.stereotype.Component;
 import vn.zaloppay.couponservice.core.entities.Coupon;
@@ -15,7 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ApplyCouponUseCase extends UseCase<ApplyCouponUseCase.InputValues, ApplyCouponUseCase.OutputValues> {
 
     private final ICouponRepository couponRepository;

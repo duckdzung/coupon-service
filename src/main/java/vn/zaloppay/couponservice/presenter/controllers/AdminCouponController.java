@@ -3,33 +3,37 @@ package vn.zaloppay.couponservice.presenter.controllers;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import vn.zaloppay.couponservice.core.entities.Coupon;
 import vn.zaloppay.couponservice.core.usecases.IUseCaseExecutor;
 import vn.zaloppay.couponservice.core.usecases.coupon.CreateCouponUseCase;
 import vn.zaloppay.couponservice.core.usecases.coupon.GetAllCouponUseCase;
 import vn.zaloppay.couponservice.core.usecases.coupon.UpdateCouponUseCase;
-import vn.zaloppay.couponservice.presenter.config.Limer;
-import vn.zaloppay.couponservice.presenter.entities.ApiResponse;
-import vn.zaloppay.couponservice.presenter.entities.CouponResponse;
-import vn.zaloppay.couponservice.presenter.entities.CreateCouponRequest;
-import vn.zaloppay.couponservice.presenter.entities.UpdateCouponRequest;
-
-import java.util.List;
+import vn.zaloppay.couponservice.presenter.config.logging.Limer;
+import vn.zaloppay.couponservice.presenter.entities.request.CreateCouponRequest;
+import vn.zaloppay.couponservice.presenter.entities.request.GetAllCouponsRequest;
+import vn.zaloppay.couponservice.presenter.entities.request.UpdateCouponRequest;
+import vn.zaloppay.couponservice.presenter.entities.response.ApiResponse;
+import vn.zaloppay.couponservice.presenter.entities.response.CouponResponse;
+import vn.zaloppay.couponservice.presenter.entities.response.DeleteCouponResponse;
+import vn.zaloppay.couponservice.presenter.entities.response.GetAllCouponsResponse;
 
 @RestController
 @RequestMapping("/api/v1/admin/coupons")
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Validated
 @Limer(enabledLogLatency = true, enabledLogInOut = true)
 public class AdminCouponController {
@@ -43,13 +47,31 @@ public class AdminCouponController {
     private final UpdateCouponUseCase updateCouponUseCase;
 
     @GetMapping()
-    public ResponseEntity<ApiResponse> getAllCoupons() {
-        List<CouponResponse> coupons = useCaseExecutor.execute(
+    public ResponseEntity<ApiResponse> getAllCoupons(@Valid @ModelAttribute GetAllCouponsRequest request) {
+        GetAllCouponsResponse response = useCaseExecutor.execute(
                 getAllCouponUseCase,
-                new GetAllCouponUseCase.InputValues(),
-                outputValues -> CouponResponse.from(outputValues.getCoupons()));
+                new GetAllCouponUseCase.InputValues(
+                        request.getDiscountType(),
+                        request.getUsageType(),
+                        request.getPage(),
+                        request.getSize(),
+                        request.getSortBy(),
+                        request.getSortDirection()
+                ),
+                outputValues -> {
+                    Page<Coupon> couponPage = outputValues.getCoupons();
+                    return GetAllCouponsResponse.builder()
+                            .content(CouponResponse.from(couponPage.getContent()))
+                            .currentPage(couponPage.getNumber())
+                            .totalPages(couponPage.getTotalPages())
+                            .totalElements(couponPage.getTotalElements())
+                            .pageSize(couponPage.getSize())
+                            .hasNext(couponPage.hasNext())
+                            .hasPrevious(couponPage.hasPrevious())
+                            .build();
+                });
 
-        return new ResponseEntity<>(ApiResponse.success(coupons, "Get all coupons successfully"), HttpStatus.OK);
+        return new ResponseEntity<>(ApiResponse.success(response, "Get all coupons successfully"), HttpStatus.OK);
     }
 
     @PostMapping
@@ -110,6 +132,7 @@ public class AdminCouponController {
             @Size(min = 3, max = 10, message = "Coupon code must be between 3 and 10 characters")
             String code) {
 
-        return new ResponseEntity<>(ApiResponse.success(null, "Delete coupon successfully"), HttpStatus.OK);
+        DeleteCouponResponse response = DeleteCouponResponse.success(code);
+        return new ResponseEntity<>(ApiResponse.success(response, "Delete coupon successfully"), HttpStatus.OK);
     }
 } 

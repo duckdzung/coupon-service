@@ -1,11 +1,11 @@
 package vn.zaloppay.couponservice.core.usecases.coupon;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.springframework.stereotype.Component;
 import vn.zaloppay.couponservice.core.entities.Coupon;
-import vn.zaloppay.couponservice.core.entities.discount.DiscountType;
 import vn.zaloppay.couponservice.core.entities.UsageType;
+import vn.zaloppay.couponservice.core.entities.discount.DiscountType;
 import vn.zaloppay.couponservice.core.exceptions.ResourceNotFoundException;
 import vn.zaloppay.couponservice.core.repositories.ICouponRepository;
 import vn.zaloppay.couponservice.core.usecases.UseCase;
@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UpdateCouponUseCase extends UseCase<UpdateCouponUseCase.InputValues, UpdateCouponUseCase.OutputValues> {
 
     private final ICouponRepository couponRepository;
