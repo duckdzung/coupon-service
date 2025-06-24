@@ -1,4 +1,4 @@
-package vn.zaloppay.couponservice.presenter.entities;
+package vn.zaloppay.couponservice.presenter.entities.request;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;

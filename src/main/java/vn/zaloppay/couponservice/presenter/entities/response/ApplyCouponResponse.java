@@ -1,4 +1,4 @@
-package vn.zaloppay.couponservice.presenter.entities;
+package vn.zaloppay.couponservice.presenter.entities.response;
 
 import lombok.Value;
 import vn.zaloppay.couponservice.core.entities.Coupon;
