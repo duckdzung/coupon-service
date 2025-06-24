@@ -1,11 +1,18 @@
 package vn.zaloppay.couponservice.data.repositories;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import vn.zaloppay.couponservice.core.entities.Coupon;
+import vn.zaloppay.couponservice.core.entities.UsageType;
+import vn.zaloppay.couponservice.core.entities.discount.DiscountType;
 import vn.zaloppay.couponservice.core.repositories.ICouponRepository;
 import vn.zaloppay.couponservice.data.entities.CouponEntity;
-import vn.zaloppay.couponservice.presenter.config.Limer;
+import vn.zaloppay.couponservice.data.repositories.specifications.CouponSpecification;
+import vn.zaloppay.couponservice.presenter.config.logging.Limer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,14 +20,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+@RequiredArgsConstructor
 @Limer(enabledLogLatency = true)
 public class CouponRepository implements ICouponRepository {
 
     private final JpaCouponRepository jpaCouponRepository;
-
-    public CouponRepository(JpaCouponRepository jpaCouponRepository) {
-        this.jpaCouponRepository = jpaCouponRepository;
-    }
 
     @Override
     public boolean existsByCode(String code) {
@@ -34,18 +38,26 @@ public class CouponRepository implements ICouponRepository {
     }
 
     @Override
-    public List<Coupon> findAll() {
-        List<CouponEntity> couponEntities = jpaCouponRepository.findAll();
-        return couponEntities.stream()
+    public Page<Coupon> findAll(DiscountType discountType, UsageType usageType, Pageable pageable) {
+        Specification<CouponEntity> spec = CouponSpecification.withFilters(discountType, usageType);
+        Page<CouponEntity> entityPage = jpaCouponRepository.findAll(spec, pageable);
+        return entityPage.map(this::toDomainObject);
+    }
+
+    @Override
+    public List<Coupon> findEligibleCoupons(BigDecimal orderAmount, LocalDateTime currentTime) {
+        Specification<CouponEntity> spec = CouponSpecification.isAvailable(orderAmount, currentTime);
+        List<CouponEntity> entities = jpaCouponRepository.findAll(spec);
+        return entities.stream()
                 .map(this::toDomainObject)
                 .toList();
     }
 
     @Override
-    public List<Coupon> findEligibleCoupons(BigDecimal orderAmount, LocalDateTime currentTime) {
-        return findAll().stream()
-                .filter(coupon -> isEligibleForAutoApply(coupon, orderAmount, currentTime))
-                .toList();
+    public Page<Coupon> findAvailableCoupons(BigDecimal orderAmount, DiscountType discountType, LocalDateTime currentTime, Pageable pageable) {
+        Specification<CouponEntity> spec = CouponSpecification.withAvailabilityFilters(orderAmount, discountType, currentTime);
+        Page<CouponEntity> entityPage = jpaCouponRepository.findAll(spec, pageable);
+        return entityPage.map(this::toDomainObject);
     }
 
     @Override
@@ -74,12 +86,7 @@ public class CouponRepository implements ICouponRepository {
         return updated > 0;
     }
 
-    private boolean isEligibleForAutoApply(Coupon coupon, BigDecimal orderAmount, LocalDateTime currentTime) {
-        return coupon.getStartTime().isBefore(currentTime) && // Coupon is active
-                coupon.getEndTime().isAfter(currentTime) && // Coupon is not expired
-                coupon.getRemainingUsage() > 0 && // Has remaining usage
-                coupon.getMinOrderValue().compareTo(orderAmount) <= 0; // Meets minimum order value
-    }
+
 
     private Coupon toDomainObject(CouponEntity entity) {
         return new Coupon(

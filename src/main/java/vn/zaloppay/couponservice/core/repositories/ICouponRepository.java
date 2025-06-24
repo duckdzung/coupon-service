@@ -1,6 +1,10 @@
 package vn.zaloppay.couponservice.core.repositories;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import vn.zaloppay.couponservice.core.entities.Coupon;
+import vn.zaloppay.couponservice.core.entities.discount.DiscountType;
+import vn.zaloppay.couponservice.core.entities.UsageType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -12,9 +16,11 @@ public interface ICouponRepository {
 
     Coupon findByCode(String code);
 
-    List<Coupon> findAll();
+    Page<Coupon> findAll(DiscountType discountType, UsageType usageType, Pageable pageable);
 
     List<Coupon> findEligibleCoupons(BigDecimal orderAmount, LocalDateTime currentTime);
+
+    Page<Coupon> findAvailableCoupons(BigDecimal orderAmount, DiscountType discountType, LocalDateTime currentTime, Pageable pageable);
 
     Coupon save(Coupon coupon);
 
