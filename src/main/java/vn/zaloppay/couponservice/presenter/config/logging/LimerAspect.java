@@ -1,5 +1,6 @@
-package vn.zaloppay.couponservice.presenter.config;
+package vn.zaloppay.couponservice.presenter.config.logging;
 
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -7,6 +8,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
+import vn.zaloppay.couponservice.presenter.config.JsonMapper;
 
 @Aspect
 @Component

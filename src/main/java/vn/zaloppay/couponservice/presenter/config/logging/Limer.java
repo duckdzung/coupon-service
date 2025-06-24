@@ -1,4 +1,4 @@
-package vn.zaloppay.couponservice.presenter.config;
+package vn.zaloppay.couponservice.presenter.config.logging;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
