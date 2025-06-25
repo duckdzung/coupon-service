@@ -1,6 +1,7 @@
 package vn.zaloppay.couponservice.presenter.entities.request;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -39,6 +40,8 @@ public class UpdateCouponRequest {
     @NotNull(message = "End time is required")
     private LocalDateTime endTime;
 
+    @NotNull(message = "Remaining usage is required")
+    @Min(message = "Remaining usage must be greater than or equal to 0", value = 0)
     private Integer remainingUsage;
 
 } 

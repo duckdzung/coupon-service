@@ -3,7 +3,7 @@ spring:
     name: coupon-service
   profiles:
     active: dev
-#    active: prod
+  #    active: prod
 
   # Config Spring Data JPA
   jpa:
@@ -21,3 +21,18 @@ management:
     metrics:
       export:
         enabled: true
+
+# Default cache configuration
+cache:
+  redis:
+    url: redis://localhost:6379
+    password:
+    min-idle: 5
+    max-active: 20
+    timeout: 3000
+    retry-attempts: 3
+    retry-interval: 1500
+  memory:
+    max-size: 1000
+    enable-cleanup: true
+    cleanup-interval: 300000

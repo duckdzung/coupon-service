@@ -2,6 +2,7 @@ package vn.zaloppay.couponservice.presenter.config;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -65,6 +66,26 @@ public class GlobalExceptionHandler {
         
         return new ResponseEntity<>(
                 new ApiResponse("Validation failed", false, errors), 
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        String message = "Invalid JSON format or unrecognized field in request body";
+        
+        // Extract more specific error information if available
+        if (ex.getCause() != null) {
+            String causeMessage = ex.getCause().getMessage();
+            if (causeMessage != null && causeMessage.contains("Unrecognized field")) {
+                message = "Invalid request: " + causeMessage.split("\\(")[0].trim();
+            } else if (causeMessage != null && causeMessage.contains("JSON parse error")) {
+                message = "Invalid JSON format in request body";
+            }
+        }
+        
+        return new ResponseEntity<>(
+                new ApiResponse(message, false, null), 
                 HttpStatus.BAD_REQUEST
         );
     }

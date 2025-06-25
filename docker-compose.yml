@@ -34,6 +34,19 @@ services:
     networks:
       - coupon-network
 
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - coupon-network
+
   # Prometheus
   prometheus:
     image: prom/prometheus:v3.4.1
@@ -65,8 +78,10 @@ services:
 volumes:
   tidb-data:
   tikv-data:
+  redis-data:
   prometheus-data:
   grafana-data:
+
 
 networks:
   coupon-network:

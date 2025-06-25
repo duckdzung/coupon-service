@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import vn.zaloppay.couponservice.core.cache.CacheKey;
+import vn.zaloppay.couponservice.core.cache.ICacheService;
 import vn.zaloppay.couponservice.core.entities.Coupon;
 import vn.zaloppay.couponservice.core.entities.UsageType;
 import vn.zaloppay.couponservice.core.entities.discount.DiscountType;
@@ -15,6 +17,7 @@ import vn.zaloppay.couponservice.data.repositories.specifications.CouponSpecific
 import vn.zaloppay.couponservice.presenter.config.logging.Limer;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +28,13 @@ import java.util.Optional;
 public class CouponRepository implements ICouponRepository {
 
     private final JpaCouponRepository jpaCouponRepository;
+    
+    private final ICacheService cacheService;
+    
+    // Cache TTL configurations
+    private static final Duration COUPON_TTL = Duration.ofMinutes(10);
+    private static final Duration AVAILABLE_COUPONS_TTL = Duration.ofSeconds(60);
+    private static final Duration ALL_COUPONS_TTL = Duration.ofMinutes(5);
 
     @Override
     public boolean existsByCode(String code) {
@@ -33,8 +43,26 @@ public class CouponRepository implements ICouponRepository {
 
     @Override
     public Coupon findByCode(String code) {
+        // Try cache first if available
+        if (cacheService != null) {
+            String cacheKey = CacheKey.couponByCode(code);
+            Optional<Coupon> cachedCoupon = cacheService.get(cacheKey, Coupon.class);
+            if (cachedCoupon.isPresent()) {
+                return cachedCoupon.get();
+            }
+        }
+        
+        // Fetch from database
         Optional<CouponEntity> couponEntity = jpaCouponRepository.findById(code);
-        return couponEntity.map(this::toDomainObject).orElse(null);
+        Coupon coupon = couponEntity.map(this::toDomainObject).orElse(null);
+        
+        // Cache the result if cache service is available and coupon exists
+        if (cacheService != null && coupon != null) {
+            String cacheKey = CacheKey.couponByCode(code);
+            cacheService.put(cacheKey, coupon, COUPON_TTL);
+        }
+        
+        return coupon;
     }
 
     @Override
@@ -55,6 +83,10 @@ public class CouponRepository implements ICouponRepository {
 
     @Override
     public Page<Coupon> findAvailableCoupons(BigDecimal orderAmount, DiscountType discountType, LocalDateTime currentTime, Pageable pageable) {
+        // Note: Complex types like Page<Coupon> are difficult to cache due to serialization complexity
+        // For now, we focus on caching simple domain objects like individual Coupons
+        // Future enhancement: Cache the List<Coupon> content and pagination info separately
+        
         Specification<CouponEntity> spec = CouponSpecification.withAvailabilityFilters(orderAmount, discountType, currentTime);
         Page<CouponEntity> entityPage = jpaCouponRepository.findAll(spec, pageable);
         return entityPage.map(this::toDomainObject);
@@ -64,26 +96,68 @@ public class CouponRepository implements ICouponRepository {
     public Coupon save(Coupon coupon) {
         CouponEntity couponEntity = toEntity(coupon);
         CouponEntity savedEntity = jpaCouponRepository.save(couponEntity);
-        return toDomainObject(savedEntity);
+        Coupon result = toDomainObject(savedEntity);
+        
+        // Update cache with new data
+        if (cacheService != null) {
+            String cacheKey = CacheKey.couponByCode(result.getCode());
+            cacheService.put(cacheKey, result, COUPON_TTL);
+            // Invalidate related cache patterns
+            cacheService.deletePattern(CacheKey.availableCouponsPattern());
+            cacheService.deletePattern(CacheKey.allCouponsPattern());
+        }
+        
+        return result;
     }
 
     @Override
     public Coupon update(Coupon coupon) {
         CouponEntity couponEntity = toEntity(coupon);
         CouponEntity updatedEntity = jpaCouponRepository.save(couponEntity);
-        return toDomainObject(updatedEntity);
+        Coupon result = toDomainObject(updatedEntity);
+        
+        // Update cache with new data
+        if (cacheService != null) {
+            String cacheKey = CacheKey.couponByCode(result.getCode());
+            cacheService.put(cacheKey, result, COUPON_TTL);
+            // Invalidate related cache patterns
+            cacheService.deletePattern(CacheKey.availableCouponsPattern());
+            cacheService.deletePattern(CacheKey.allCouponsPattern());
+        }
+        
+        return result;
     }
 
     @Override
     public void delete(Coupon coupon) {
         jpaCouponRepository.deleteById(coupon.getCode());
+        
+        // Remove from cache
+        if (cacheService != null) {
+            String cacheKey = CacheKey.couponByCode(coupon.getCode());
+            cacheService.delete(cacheKey);
+            // Invalidate related cache patterns
+            cacheService.deletePattern(CacheKey.availableCouponsPattern());
+            cacheService.deletePattern(CacheKey.allCouponsPattern());
+        }
     }
 
     @Override
     @Transactional
     public boolean decrementRemainingUsage(String code) {
         int updated = jpaCouponRepository.decrementRemainingUsage(code);
-        return updated > 0;
+        boolean result = updated > 0;
+        
+        if (result && cacheService != null) {
+            // Invalidate cache for this coupon and related caches
+            String cacheKey = CacheKey.couponByCode(code);
+            cacheService.delete(cacheKey);
+            // Invalidate related cache patterns since remaining usage affects availability
+            cacheService.deletePattern(CacheKey.availableCouponsPattern());
+            cacheService.deletePattern(CacheKey.allCouponsPattern());
+        }
+        
+        return result;
     }
 
 

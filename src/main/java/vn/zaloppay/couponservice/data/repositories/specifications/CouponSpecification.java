@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 
 public class CouponSpecification {
 
+    private CouponSpecification() {}
+
     public static Specification<CouponEntity> hasDiscountType(DiscountType discountType) {
         return (root, query, criteriaBuilder) -> {
             if (discountType == null) {

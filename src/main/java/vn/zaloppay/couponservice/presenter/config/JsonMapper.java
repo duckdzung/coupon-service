@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JsonMapper {
+
+    private JsonMapper() {}
     
     private static final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())

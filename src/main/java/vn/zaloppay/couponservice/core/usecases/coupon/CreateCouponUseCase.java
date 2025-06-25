@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class CreateCouponUseCase extends UseCase<CreateCouponUseCase.InputValues, CreateCouponUseCase.OutputValues> {
 
-    private ICouponRepository couponRepository;
+    private final ICouponRepository couponRepository;
 
     @Override
     public OutputValues execute(InputValues input) {
