@@ -5,10 +5,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
+import org.redisson.config.EqualJitterDelay;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+
+import java.time.Duration;
 
 /**
  * Cache configuration for setting up cache providers and related beans.
@@ -16,26 +19,35 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class CacheConfiguration {
 
-    @Value("${cache.redis.url:redis://localhost:6379}")
+    @Value("${cache.redis.url}")
     private String redisUrl;
 
-    @Value("${cache.redis.password:}")
+    @Value("${cache.redis.password}")
     private String redisPassword;
 
-    @Value("${cache.redis.min-idle:5}")
+    @Value("${cache.redis.min-idle}")
     private int redisMinIdle;
 
-    @Value("${cache.redis.max-active:20}")
+    @Value("${cache.redis.max-active}")
     private int redisMaxActive;
 
-    @Value("${cache.redis.timeout:3000}")
+    @Value("${cache.redis.timeout}")
     private int redisTimeout;
 
-    @Value("${cache.redis.retry-attempts:3}")
+    @Value("${cache.redis.retry-attempts}")
     private int redisRetryAttempts;
 
-    @Value("${cache.redis.retry-interval:1500}")
-    private int redisRetryInterval;
+    @Value("${cache.redis.retry-delay-min}")
+    private int redisRetryDelayMin;
+
+    @Value("${cache.redis.retry-delay-max}")
+    private int redisRetryDelayMax;
+
+    @Value("${cache.redis.reconnection-delay-min}")
+    private int redisReconnectionDelayMin;
+
+    @Value("${cache.redis.reconnection-delay-max}")
+    private int redisReconnectionDelayMax;
 
     /**
      * ObjectMapper bean for cache serialization/deserialization
@@ -62,7 +74,8 @@ public class CacheConfiguration {
                 .setConnectionPoolSize(redisMaxActive)
                 .setTimeout(redisTimeout)
                 .setRetryAttempts(redisRetryAttempts)
-                .setRetryInterval(redisRetryInterval);
+                .setRetryDelay(new EqualJitterDelay(Duration.ofMillis(redisRetryDelayMin), Duration.ofMillis(redisRetryDelayMax)))
+                .setReconnectionDelay(new EqualJitterDelay(Duration.ofMillis(redisReconnectionDelayMin), Duration.ofMillis(redisReconnectionDelayMax)));
 
         return Redisson.create(config);
     }

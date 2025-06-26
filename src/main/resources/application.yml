@@ -26,15 +26,12 @@ management:
 cache:
   redis:
     url: redis://localhost:6379
-    password:
+    password: ""
     min-idle: 5
     max-active: 20
     timeout: 3000
     retry-attempts: 3
-    retry-interval: 1500
-  memory:
-    max-size: 1000
-    enable-cleanup: true
-    cleanup-interval: 300000
-# Simple Rate Limiting (using Redis)
-# No additional configuration needed
+    retry-delay-min: 300
+    retry-delay-max: 500
+    reconnection-delay-min: 500
+    reconnection-delay-max: 3000
