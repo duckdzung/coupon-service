@@ -8,6 +8,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import vn.zaloppay.couponservice.core.cache.ICacheService;
+import vn.zaloppay.couponservice.presenter.config.logging.Limer;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import java.util.Optional;
 @Primary
 @RequiredArgsConstructor
 @Slf4j
+@Limer(enabledLogLatency = true)
 public class RedisCacheService implements ICacheService {
     
     private final RedissonClient redissonClient;

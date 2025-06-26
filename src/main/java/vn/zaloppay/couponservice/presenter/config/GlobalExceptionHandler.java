@@ -10,6 +10,7 @@ import vn.zaloppay.couponservice.core.exceptions.BadRequestException;
 import vn.zaloppay.couponservice.core.exceptions.ConflictException;
 import vn.zaloppay.couponservice.core.exceptions.InternalServerErrorException;
 import vn.zaloppay.couponservice.core.exceptions.ResourceNotFoundException;
+import vn.zaloppay.couponservice.core.exceptions.TooManyRequestsException;
 import vn.zaloppay.couponservice.presenter.entities.response.ApiResponse;
 
 import jakarta.validation.ConstraintViolation;
@@ -38,6 +39,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InternalServerErrorException.class)
     public ResponseEntity<ApiResponse> handleInternalServerErrorException(InternalServerErrorException ex) {
         return new ResponseEntity<>(new ApiResponse(ex.getMessage(), false, null), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiResponse> handleTooManyRequestsException(TooManyRequestsException ex) {
+        return new ResponseEntity<>(new ApiResponse(ex.getMessage(), false, null), HttpStatus.TOO_MANY_REQUESTS);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

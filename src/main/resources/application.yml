@@ -36,3 +36,5 @@ cache:
     max-size: 1000
     enable-cleanup: true
     cleanup-interval: 300000
+# Simple Rate Limiting (using Redis)
+# No additional configuration needed

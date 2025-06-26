@@ -20,6 +20,7 @@ import vn.zaloppay.couponservice.core.usecases.IUseCaseExecutor;
 import vn.zaloppay.couponservice.core.usecases.coupon.ApplyCouponUseCase;
 import vn.zaloppay.couponservice.core.usecases.coupon.GetAvailableCouponsUseCase;
 import vn.zaloppay.couponservice.core.usecases.coupon.GetCouponByCodeUseCase;
+import vn.zaloppay.couponservice.presenter.config.rate_limit.RateLimit;
 import vn.zaloppay.couponservice.presenter.entities.request.ApplyCouponRequest;
 import vn.zaloppay.couponservice.presenter.entities.request.GetAvailableCouponsRequest;
 import vn.zaloppay.couponservice.presenter.entities.response.ApiResponse;
@@ -46,24 +47,25 @@ public class CouponController {
     private final GetAvailableCouponsUseCase getAvailableCouponsUseCase;
 
     @GetMapping("/{code}")
+    @RateLimit(maxRequests = 2, expirySeconds = 60)
     public ResponseEntity<ApiResponse> getCouponByCode(
-            @PathVariable 
-            @NotBlank(message = "Coupon code must not be blank") 
-            @Size(min = 3, max = 10, message = "Coupon code must be between 3 and 10 characters") 
+            @PathVariable
+            @NotBlank(message = "Coupon code must not be blank")
+            @Size(min = 3, max = 10, message = "Coupon code must be between 3 and 10 characters")
             String code) {
-        
+
         CouponResponse coupon = useCaseExecutor.execute(
                 getCouponByCodeUseCase,
                 new GetCouponByCodeUseCase.InputValues(code),
                 outputValues -> CouponResponse.from(outputValues.getCoupon())
         );
-        
+
         return new ResponseEntity<>(ApiResponse.success(coupon, "Get coupon by code successfully"), HttpStatus.OK);
     }
 
     @PostMapping("/apply")
     public ResponseEntity<ApiResponse> applyCoupon(@Valid @RequestBody ApplyCouponRequest applyCouponRequest) {
-        
+
         ApplyCouponResponse result = useCaseExecutor.execute(
                 applyCouponUseCase,
                 new ApplyCouponUseCase.InputValues(
@@ -76,13 +78,13 @@ public class CouponController {
                         outputValues.getCoupon()
                 )
         );
-        
+
         return new ResponseEntity<>(ApiResponse.success(result, "Apply coupon successfully"), HttpStatus.OK);
     }
 
     @GetMapping("/available")
     public ResponseEntity<ApiResponse> getAvailableCoupons(@Valid @ModelAttribute GetAvailableCouponsRequest request) {
-        
+
         GetAvailableCouponResponse result = useCaseExecutor.execute(
                 getAvailableCouponsUseCase,
                 new GetAvailableCouponsUseCase.InputValues(
@@ -95,11 +97,11 @@ public class CouponController {
                 ),
                 outputValues -> {
                     Page<Coupon> couponsPage = outputValues.getCouponsPage();
-                    
+
                     List<AvailableCouponResponse> couponResponses = couponsPage.getContent().stream()
                             .map(coupon -> AvailableCouponResponse.from(coupon, request.getOrderAmount()))
                             .toList();
-                    
+
                     return GetAvailableCouponResponse.builder()
                             .content(couponResponses)
                             .currentPage(couponsPage.getNumber())
@@ -111,7 +113,7 @@ public class CouponController {
                             .build();
                 }
         );
-        
+
         return new ResponseEntity<>(ApiResponse.success(result, "Get available coupons successfully"), HttpStatus.OK);
     }
 
