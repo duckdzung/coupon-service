@@ -34,16 +34,107 @@ services:
     networks:
       - coupon-network
 
-  # Redis
-  redis:
-    image: redis:7-alpine
-    container_name: redis
+  # Redis Cluster
+  redis-node-1:
+    image: bitnami/redis-cluster:8.0.2
     ports:
-      - "6379:6379"
+      - "7001:6379"
+    environment:
+      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
+      - "REDIS_CLUSTER_REPLICAS=1"
+      - "REDIS_CLUSTER_CREATOR=yes"
     volumes:
-      - redis-data:/data
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-    command: redis-server /usr/local/etc/redis/redis.conf
+      - redis-node-1-data:/bitnami/redis/data
+    networks:
+      - coupon-network
+
+  redis-node-2:
+    image: bitnami/redis-cluster:8.0.2
+    ports:
+      - "7002:6379"
+    environment:
+      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
+      - "REDIS_CLUSTER_REPLICAS=1"
+    volumes:
+      - redis-node-2-data:/bitnami/redis/data
+    networks:
+      - coupon-network
+
+  redis-node-3:
+    image: bitnami/redis-cluster:8.0.2
+    ports:
+      - "7003:6379"
+    environment:
+      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
+      - "REDIS_CLUSTER_REPLICAS=1"
+    volumes:
+      - redis-node-3-data:/bitnami/redis/data
+    networks:
+      - coupon-network
+
+  redis-node-4:
+    image: bitnami/redis-cluster:8.0.2
+    ports:
+      - "7004:6379"
+    environment:
+      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
+      - "REDIS_CLUSTER_REPLICAS=1"
+    volumes:
+      - redis-node-4-data:/bitnami/redis/data
+    networks:
+      - coupon-network
+
+  redis-node-5:
+    image: bitnami/redis-cluster:8.0.2
+    ports:
+      - "7005:6379"
+    environment:
+      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
+      - "REDIS_CLUSTER_REPLICAS=1"
+    volumes:
+      - redis-node-5-data:/bitnami/redis/data
+    networks:
+      - coupon-network
+
+  redis-node-6:
+    image: bitnami/redis-cluster:8.0.2
+    ports:
+      - "7006:6379"
+    environment:
+      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
+      - "REDIS_CLUSTER_REPLICAS=1"
+    volumes:
+      - redis-node-6-data:/bitnami/redis/data
+    networks:
+      - coupon-network
+
+  # Redis Exporter for monitoring
+  redis-exporter:
+    image: bitnami/redis-exporter:1.74.0
+    ports:
+      - "9121:9121"
+    environment:
+      - "REDIS_ADDR=redis://redis-node-1:6379"
+      - "REDIS_USER="
+      - "REDIS_PASSWORD="
+      - "REDIS_EXPORTER_LOG_LEVEL=info"
+      - "REDIS_EXPORTER_CHECK_KEYS=*"
+      - "REDIS_EXPORTER_CHECK_SINGLE_KEYS=coupon:*,rate_limit:*,lock:*"
+      - "REDIS_EXPORTER_INCL_SYSTEM_METRICS=true"
+      - "REDIS_EXPORTER_IS_CLUSTER=true"
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
+      - redis-node-6
     networks:
       - coupon-network
 
@@ -78,10 +169,14 @@ services:
 volumes:
   tidb-data:
   tikv-data:
-  redis-data:
+  redis-node-1-data:
+  redis-node-2-data:
+  redis-node-3-data:
+  redis-node-4-data:
+  redis-node-5-data:
+  redis-node-6-data:
   prometheus-data:
   grafana-data:
-
 
 networks:
   coupon-network:

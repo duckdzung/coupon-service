@@ -10,3 +10,23 @@ spring:
     hikari:
       minimum-idle: 5
       maximum-pool-size: 20
+
+# Cache configuration for production
+cache:
+  redis:
+    cluster:
+      nodes: redis://redis-node-1:6379,redis://redis-node-2:6379,redis://redis-node-3:6379,redis://redis-node-4:6379,redis://redis-node-5:6379,redis://redis-node-6:6379
+      scan-interval: 2000
+      master-connection-pool-size: 250
+      slave-connection-pool-size: 250
+      read-mode: SLAVE
+      subscription-mode: MASTER
+    password: ""
+    min-idle: 10
+    max-active: 50
+    timeout: 3000
+    retry-attempts: 3
+    retry-delay-min: 300
+    retry-delay-max: 500
+    reconnection-delay-min: 500
+    reconnection-delay-max: 3000

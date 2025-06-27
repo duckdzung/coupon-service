@@ -12,15 +12,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import java.time.Duration;
+import java.util.List;
 
-/**
- * Cache configuration for setting up cache providers and related beans.
- */
 @Configuration
 public class CacheConfiguration {
 
-    @Value("${cache.redis.url}")
-    private String redisUrl;
+    @Value("#{'${cache.redis.cluster.nodes}'.split(',')}")
+    private List<String> redisClusterNodes;
 
     @Value("${cache.redis.password}")
     private String redisPassword;
@@ -49,9 +47,21 @@ public class CacheConfiguration {
     @Value("${cache.redis.reconnection-delay-max}")
     private int redisReconnectionDelayMax;
 
-    /**
-     * ObjectMapper bean for cache serialization/deserialization
-     */
+    @Value("${cache.redis.cluster.scan-interval:2000}")
+    private int clusterScanInterval;
+
+    @Value("${cache.redis.cluster.master-connection-pool-size:250}")
+    private int masterConnectionPoolSize;
+
+    @Value("${cache.redis.cluster.slave-connection-pool-size:250}")
+    private int slaveConnectionPoolSize;
+
+    @Value("${cache.redis.cluster.read-mode:SLAVE}")
+    private String readMode;
+
+    @Value("${cache.redis.cluster.subscription-mode:MASTER}")
+    private String subscriptionMode;
+
     @Bean
     @Primary
     public ObjectMapper cacheObjectMapper() {
@@ -61,22 +71,26 @@ public class CacheConfiguration {
         return mapper;
     }
 
-    /**
-     * RedissonClient bean for Redis operations
-     */
     @Bean
     public RedissonClient redissonClient() {
         Config config = new Config();
-        config.useSingleServer()
-                .setAddress(redisUrl)
+
+        config.useClusterServers()
+                .addNodeAddress(redisClusterNodes.toArray(new String[0]))
                 .setPassword(redisPassword.isEmpty() ? null : redisPassword)
-                .setConnectionMinimumIdleSize(redisMinIdle)
-                .setConnectionPoolSize(redisMaxActive)
+                .setMasterConnectionMinimumIdleSize(redisMinIdle)
+                .setMasterConnectionPoolSize(masterConnectionPoolSize)
+                .setSlaveConnectionMinimumIdleSize(redisMinIdle)
+                .setSlaveConnectionPoolSize(slaveConnectionPoolSize)
                 .setTimeout(redisTimeout)
                 .setRetryAttempts(redisRetryAttempts)
                 .setRetryDelay(new EqualJitterDelay(Duration.ofMillis(redisRetryDelayMin), Duration.ofMillis(redisRetryDelayMax)))
-                .setReconnectionDelay(new EqualJitterDelay(Duration.ofMillis(redisReconnectionDelayMin), Duration.ofMillis(redisReconnectionDelayMax)));
+                .setReconnectionDelay(new EqualJitterDelay(Duration.ofMillis(redisReconnectionDelayMin), Duration.ofMillis(redisReconnectionDelayMax)))
+                .setScanInterval(clusterScanInterval)
+                .setReadMode(org.redisson.config.ReadMode.valueOf(readMode))
+                .setSubscriptionMode(org.redisson.config.SubscriptionMode.valueOf(subscriptionMode));
 
         return Redisson.create(config);
     }
+
 }

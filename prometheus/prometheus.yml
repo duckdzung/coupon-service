@@ -12,3 +12,9 @@ scrape_configs:
   - job_name: "tidb"
     static_configs:
       - targets: ["tidb:10080"]
+
+  # Redis Cluster Monitoring
+  - job_name: "redis-cluster"
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+    metrics_path: "/metrics"

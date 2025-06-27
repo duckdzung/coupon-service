@@ -20,6 +20,7 @@ import vn.zaloppay.couponservice.core.usecases.IUseCaseExecutor;
 import vn.zaloppay.couponservice.core.usecases.coupon.ApplyCouponUseCase;
 import vn.zaloppay.couponservice.core.usecases.coupon.GetAvailableCouponsUseCase;
 import vn.zaloppay.couponservice.core.usecases.coupon.GetCouponByCodeUseCase;
+import vn.zaloppay.couponservice.presenter.config.logging.Limer;
 import vn.zaloppay.couponservice.presenter.config.rate_limit.RateLimit;
 import vn.zaloppay.couponservice.presenter.entities.request.ApplyCouponRequest;
 import vn.zaloppay.couponservice.presenter.entities.request.GetAvailableCouponsRequest;
@@ -36,6 +37,7 @@ import java.util.List;
 @RequestMapping("/api/v1/coupons")
 @RequiredArgsConstructor
 @Validated
+@Limer(enabledLogLatency = true, enabledLogInOut = true)
 public class CouponController {
 
     private final IUseCaseExecutor useCaseExecutor;
@@ -47,7 +49,7 @@ public class CouponController {
     private final GetAvailableCouponsUseCase getAvailableCouponsUseCase;
 
     @GetMapping("/{code}")
-    @RateLimit(maxRequests = 2, expirySeconds = 60)
+    @RateLimit(maxRequests = 100, expirySeconds = 60)
     public ResponseEntity<ApiResponse> getCouponByCode(
             @PathVariable
             @NotBlank(message = "Coupon code must not be blank")

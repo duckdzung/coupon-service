@@ -47,10 +47,6 @@ public class ApplyCouponUseCase extends UseCase<ApplyCouponUseCase.InputValues, 
                 input.getCreatedAt()
         );
 
-        if (eligibleCoupons.isEmpty()) {
-            return null; // No eligible coupons found
-        }
-
         // Find the coupon that gives maximum discount
         Coupon bestCoupon = eligibleCoupons.stream()
                 .max(Comparator.comparing(coupon -> coupon.calculateDiscount(input.getOrderAmount())))
