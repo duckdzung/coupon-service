@@ -14,22 +14,38 @@ spring:
 # Cache configuration for development
 cache:
   redis:
-    cluster:
-      nodes: redis://localhost:7001,redis://localhost:7002,redis://localhost:7003,redis://localhost:7004,redis://localhost:7005,redis://localhost:7006
-      scan-interval: 2000
-      master-connection-pool-size: 250
-      slave-connection-pool-size: 250
-      read-mode: SLAVE
-      subscription-mode: MASTER
-    password: ""
+    # Mode: single or cluster
+    mode: single
+    password: 123456
     min-idle: 5
     max-active: 20
-    timeout: 3000
+    timeout: 10000
     retry-attempts: 3
     retry-delay-min: 300
     retry-delay-max: 500
     reconnection-delay-min: 500
     reconnection-delay-max: 3000
+
+    # Single server configuration for development
+    single:
+      address: redis://localhost:6379
+      connection-pool-size: 10
+      connection-minimum-idle-size: 5
+
+    # Cluster configuration for development
+    cluster:
+      nodes:
+        - redis://localhost:7001
+        - redis://localhost:7002
+        - redis://localhost:7003
+        - redis://localhost:7004
+        - redis://localhost:7005
+        - redis://localhost:7006
+      scan-interval: 2000
+      master-connection-pool-size: 10
+      slave-connection-pool-size: 10
+      read-mode: SLAVE
+      subscription-mode: MASTER
 
 # Logging configuration
 logging:

@@ -34,13 +34,27 @@ services:
     networks:
       - coupon-network
 
+  # Redis Single Server (for single mode)
+  redis-single:
+    image: bitnami/redis:8.0.2
+    ports:
+      - "6379:6379"
+    environment:
+      - "ALLOW_EMPTY_PASSWORD=no"
+      - "REDIS_PASSWORD=123456"
+    volumes:
+      - redis-single-data:/bitnami/redis/data
+    networks:
+      - coupon-network
+
   # Redis Cluster
   redis-node-1:
     image: bitnami/redis-cluster:8.0.2
     ports:
       - "7001:6379"
     environment:
-      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "ALLOW_EMPTY_PASSWORD=no"
+      - "REDIS_PASSWORD=123456"
       - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
       - "REDIS_CLUSTER_REPLICAS=1"
       - "REDIS_CLUSTER_CREATOR=yes"
@@ -54,7 +68,8 @@ services:
     ports:
       - "7002:6379"
     environment:
-      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "ALLOW_EMPTY_PASSWORD=no"
+      - "REDIS_PASSWORD=123456"
       - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
       - "REDIS_CLUSTER_REPLICAS=1"
     volumes:
@@ -67,7 +82,8 @@ services:
     ports:
       - "7003:6379"
     environment:
-      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "ALLOW_EMPTY_PASSWORD=no"
+      - "REDIS_PASSWORD=123456"
       - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
       - "REDIS_CLUSTER_REPLICAS=1"
     volumes:
@@ -80,7 +96,8 @@ services:
     ports:
       - "7004:6379"
     environment:
-      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "ALLOW_EMPTY_PASSWORD=no"
+      - "REDIS_PASSWORD=123456"
       - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
       - "REDIS_CLUSTER_REPLICAS=1"
     volumes:
@@ -93,7 +110,8 @@ services:
     ports:
       - "7005:6379"
     environment:
-      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "ALLOW_EMPTY_PASSWORD=no"
+      - "REDIS_PASSWORD=123456"
       - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
       - "REDIS_CLUSTER_REPLICAS=1"
     volumes:
@@ -106,7 +124,8 @@ services:
     ports:
       - "7006:6379"
     environment:
-      - "ALLOW_EMPTY_PASSWORD=yes"
+      - "ALLOW_EMPTY_PASSWORD=no"
+      - "REDIS_PASSWORD=123456"
       - "REDIS_NODES=redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6"
       - "REDIS_CLUSTER_REPLICAS=1"
     volumes:
@@ -122,7 +141,7 @@ services:
     environment:
       - "REDIS_ADDR=redis://redis-node-1:6379"
       - "REDIS_USER="
-      - "REDIS_PASSWORD="
+      - "REDIS_PASSWORD=123456"
       - "REDIS_EXPORTER_LOG_LEVEL=info"
       - "REDIS_EXPORTER_CHECK_KEYS=*"
       - "REDIS_EXPORTER_CHECK_SINGLE_KEYS=coupon:*,rate_limit:*,lock:*"
@@ -169,6 +188,7 @@ services:
 volumes:
   tidb-data:
   tikv-data:
+  redis-single-data:
   redis-node-1-data:
   redis-node-2-data:
   redis-node-3-data:
